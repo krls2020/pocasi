@@ -1,0 +1,37 @@
+zerops:
+  - setup: dev
+    build:
+      base:
+        - php@8.4
+        - nodejs@22
+      buildCommands:
+        - composer install
+        - npm install
+      deployFiles:
+        - ./
+      cache:
+        - vendor
+        - node_modules
+
+    run:
+      base: php-nginx@8.4
+      documentRoot: public
+      prepareCommands:
+        - sudo -E zsc install nodejs@22
+      initCommands:
+        - zsc execOnce ${appVersionId} --retryUntilSuccessful -- php artisan migrate --force
+      envVariables:
+        APP_NAME: "Weather Dashboard"
+        APP_ENV: local
+        APP_DEBUG: "true"
+        APP_URL: ${zeropsSubdomain}
+        LOG_CHANNEL: stderr
+        LOG_LEVEL: debug
+        DB_CONNECTION: pgsql
+        DB_HOST: ${db_hostname}
+        DB_PORT: ${db_port}
+        DB_DATABASE: ${db_dbName}
+        DB_USERNAME: ${db_user}
+        DB_PASSWORD: ${db_password}
+        SESSION_DRIVER: database
+        CACHE_STORE: database

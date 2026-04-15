@@ -1,0 +1,11 @@
+services:
+  - hostname: db
+    type: postgresql@16
+    mode: NON_HA
+    priority: 10
+
+  - hostname: appdev
+    type: php-nginx@8.4
+    startWithoutCode: true
+    maxContainers: 1
+    enableSubdomainAccess: true
