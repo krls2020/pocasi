@@ -18,7 +18,7 @@ class WeatherController extends Controller
 
         $recentLogs = WeatherLog::query()
             ->orderByDesc('created_at')
-            ->limit(50)
+            ->limit(20)
             ->get();
 
         $stats = [
@@ -27,11 +27,21 @@ class WeatherController extends Controller
             'last_update' => WeatherLog::max('created_at'),
         ];
 
+        $forecast = null;
+        $forecastCity = null;
+        $mostRecent = WeatherLog::query()->orderByDesc('created_at')->first();
+        if ($mostRecent && $mostRecent->lat && $mostRecent->lon) {
+            $forecast = $weather->fetchForecast((float) $mostRecent->lat, (float) $mostRecent->lon);
+            $forecastCity = $mostRecent->city;
+        }
+
         return view('weather.dashboard', [
             'latest' => $latest,
             'recentLogs' => $recentLogs,
             'stats' => $stats,
             'apiConfigured' => $weather->isConfigured(),
+            'forecast' => $forecast,
+            'forecastCity' => $forecastCity,
         ]);
     }
 
@@ -44,7 +54,7 @@ class WeatherController extends Controller
         $log = $weather->fetchAndLog($request->input('city'));
 
         if (!$log) {
-            return back()->with('error', 'Nepodařilo se získat data o počasí. Zkontrolujte API klíč a název města.');
+            return back()->with('error', 'Město nebylo nalezeno. Zkontrolujte název a zkuste znovu.');
         }
 
         return back()->with('success', "Počasí pro {$log->city} úspěšně načteno.");
@@ -68,9 +78,23 @@ class WeatherController extends Controller
         ]);
     }
 
-    public function detail(WeatherLog $weatherLog)
+    public function detail(WeatherLog $weatherLog, WeatherService $weather)
     {
-        return view('weather.detail', ['log' => $weatherLog]);
+        $forecast = null;
+        if ($weatherLog->lat && $weatherLog->lon) {
+            $forecast = $weather->fetchForecast((float) $weatherLog->lat, (float) $weatherLog->lon);
+        }
+
+        $history = WeatherLog::where('city', $weatherLog->city)
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
+
+        return view('weather.detail', [
+            'log' => $weatherLog,
+            'forecast' => $forecast,
+            'history' => $history,
+        ]);
     }
 
     public function status()

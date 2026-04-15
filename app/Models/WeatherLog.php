@@ -2,28 +2,15 @@
 
 namespace App\Models;
 
+use App\Services\WeatherService;
 use Illuminate\Database\Eloquent\Model;
 
 class WeatherLog extends Model
 {
     protected $fillable = [
-        'city',
-        'country',
-        'temperature',
-        'feels_like',
-        'humidity',
-        'wind_speed',
-        'wind_deg',
-        'pressure',
-        'visibility',
-        'clouds',
-        'description',
-        'icon',
-        'lat',
-        'lon',
-        'source',
-        'raw_response',
-        'observed_at',
+        'city', 'country', 'temperature', 'feels_like', 'humidity',
+        'wind_speed', 'wind_deg', 'pressure', 'visibility', 'clouds',
+        'description', 'icon', 'lat', 'lon', 'source', 'raw_response', 'observed_at',
     ];
 
     protected function casts(): array
@@ -37,5 +24,27 @@ class WeatherLog extends Model
             'raw_response' => 'array',
             'observed_at' => 'datetime',
         ];
+    }
+
+    public function getWeatherEmojiAttribute(): string
+    {
+        $icon = $this->icon;
+
+        // OpenWeatherMap icon codes (legacy data)
+        if ($icon && preg_match('/^\d{2}[dn]$/', $icon)) {
+            return match (substr($icon, 0, 2)) {
+                '01' => '☀️',
+                '02' => '🌤️',
+                '03', '04' => '☁️',
+                '09' => '🌧️',
+                '10' => '🌦️',
+                '11' => '⛈️',
+                '13' => '🌨️',
+                '50' => '🌫️',
+                default => '🌤️',
+            };
+        }
+
+        return WeatherService::weatherEmoji((int) ($icon ?? 0));
     }
 }

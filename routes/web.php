@@ -8,3 +8,4 @@ Route::post('/weather/fetch', [WeatherController::class, 'fetch'])->name('weathe
 Route::get('/weather/history', [WeatherController::class, 'history'])->name('weather.history');
 Route::get('/weather/{weatherLog}', [WeatherController::class, 'detail'])->name('weather.detail');
 Route::get('/status', [WeatherController::class, 'status'])->name('status');
+Route::get('/health', [WeatherController::class, 'status'])->name('health');
