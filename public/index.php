@@ -1,30 +1,20 @@
 <?php
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-header('Content-Type: application/json');
 
-if ($uri === '/health') {
-    echo json_encode(['status' => 'ok']);
-    exit;
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
 }
 
-if ($uri === '/status') {
-    $result = ['service' => 'appdev', 'status' => 'ok', 'connections' => []];
-    try {
-        $host = getenv('DB_HOST') ?: 'db';
-        $port = getenv('DB_PORT') ?: '5432';
-        $db   = getenv('DB_DATABASE') ?: 'db';
-        $user = getenv('DB_USERNAME') ?: '';
-        $pass = getenv('DB_PASSWORD') ?: '';
-        $t = microtime(true);
-        $pdo = new PDO("pgsql:host=$host;port=$port;dbname=$db", $user, $pass, [PDO::ATTR_TIMEOUT => 5]);
-        $pdo->query('SELECT 1');
-        $ms = round((microtime(true) - $t) * 1000);
-        $result['connections']['db'] = ['status' => 'ok', 'latency_ms' => $ms];
-    } catch (Exception $e) {
-        $result['connections']['db'] = ['status' => 'error', 'error' => $e->getMessage()];
-    }
-    echo json_encode($result);
-    exit;
-}
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
 
-echo json_encode(['service' => 'appdev', 'message' => 'Service: appdev']);
+// Bootstrap Laravel and handle the request...
+/** @var Application $app */
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+$app->handleRequest(Request::capture());

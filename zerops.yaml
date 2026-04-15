@@ -1,15 +1,25 @@
 zerops:
   - setup: dev
     build:
-      base: php@8.4
+      base:
+        - php@8.4
+        - nodejs@22
       buildCommands:
-        - echo "verification server - no deps needed"
+        - composer install
+        - npm install
       deployFiles:
         - ./
+      cache:
+        - vendor
+        - node_modules
 
     run:
       base: php-nginx@8.4
       documentRoot: public
+      prepareCommands:
+        - sudo -E zsc install nodejs@22
+      initCommands:
+        - zsc execOnce ${appVersionId} --retryUntilSuccessful -- php artisan migrate --force
       envVariables:
         APP_NAME: "Weather Dashboard"
         APP_ENV: local
