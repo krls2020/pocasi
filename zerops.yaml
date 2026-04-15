@@ -1,4 +1,63 @@
 zerops:
+  - setup: prod
+    build:
+      base:
+        - php@8.4
+        - nodejs@22
+      buildCommands:
+        - composer install --no-dev --optimize-autoloader
+        - npm install
+        - npm run build
+      deployFiles:
+        - app
+        - bootstrap
+        - config
+        - database
+        - public
+        - resources/views
+        - routes
+        - storage
+        - vendor
+        - artisan
+        - composer.json
+      cache:
+        - vendor
+        - node_modules
+
+    deploy:
+      readinessCheck:
+        httpGet:
+          port: 80
+          path: /health
+
+    run:
+      base: php-nginx@8.4
+      documentRoot: public
+      initCommands:
+        - zsc execOnce ${appVersionId} --retryUntilSuccessful -- php artisan migrate --force
+        - php artisan config:cache
+        - php artisan route:cache
+        - php artisan view:cache
+      healthCheck:
+        httpGet:
+          port: 80
+          path: /health
+      envVariables:
+        APP_NAME: "Weather Dashboard"
+        APP_ENV: production
+        APP_DEBUG: "false"
+        APP_URL: ${zeropsSubdomain}
+        LOG_CHANNEL: stderr
+        LOG_LEVEL: warning
+        DB_CONNECTION: pgsql
+        DB_HOST: ${db_hostname}
+        DB_PORT: ${db_port}
+        DB_DATABASE: ${db_dbName}
+        DB_USERNAME: ${db_user}
+        DB_PASSWORD: ${db_password}
+        SESSION_DRIVER: database
+        CACHE_STORE: database
+
   - setup: dev
     build:
       base:
