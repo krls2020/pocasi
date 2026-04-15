@@ -9,8 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: zeropsio/actions@main
-        with:
-          access-token: ${{ secrets.ZEROPS_TOKEN }}
-          service-id: p1MjeMT7QxeH4iJHfNCJLQ
-          setup: prod
+
+      - name: Install zcli
+        run: |
+          curl -sSL https://zerops.io/zcli/install.sh | sh
+          sudo mv zcli /usr/local/bin/
+
+      - name: Deploy to appstage
+        run: zcli push --serviceId p1MjeMT7QxeH4iJHfNCJLQ --setup prod
+        env:
+          ZEROPS_TOKEN: ${{ secrets.ZEROPS_TOKEN }}
