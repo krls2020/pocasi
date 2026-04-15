@@ -12,7 +12,7 @@ class WeatherService
 
     public function __construct()
     {
-        $this->apiKey = config('services.openweathermap.key', '');
+        $this->apiKey = (string) config('services.openweathermap.key', '');
     }
 
     public function fetchAndLog(string $city): ?WeatherLog
