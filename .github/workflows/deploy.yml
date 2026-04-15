@@ -11,11 +11,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install zcli
-        run: |
-          curl -sSL https://zerops.io/zcli/install.sh | sh
-          sudo mv zcli /usr/local/bin/
+        run: curl -sSL https://zerops.io/zcli/install.sh | sh
 
       - name: Deploy to appstage
-        run: zcli push --serviceId p1MjeMT7QxeH4iJHfNCJLQ --setup prod
+        run: ~/.local/bin/zcli push --serviceId p1MjeMT7QxeH4iJHfNCJLQ --setup prod
         env:
           ZEROPS_TOKEN: ${{ secrets.ZEROPS_TOKEN }}
