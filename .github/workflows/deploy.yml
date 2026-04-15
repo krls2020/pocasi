@@ -13,3 +13,4 @@ jobs:
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: p1MjeMT7QxeH4iJHfNCJLQ
+          setup: prod
